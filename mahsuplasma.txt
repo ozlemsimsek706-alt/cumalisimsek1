@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TkAsistan | Mahsuplaşma</title>
+    <link rel="stylesheet" href="stil.css">
+</head>
+<body class="page-app">
+
+<script>
+    if(!localStorage.getItem('tk_oturum')) window.location.href = 'giris.html';
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<div id="customContextMenu"><div class="menu-item red" id="deleteMenuItem">🗑️ Sil</div></div>
+<div id="loadingOverlay"><div class="spinner"></div><div id="loadingText">Hesaplanıyor...</div></div>
+<input type="file" id="pdfUpload" accept=".pdf">
+
+<div class="navbar" style="margin: 20px auto; width: 96%; max-width: 1400px; box-sizing: border-box;">
+    <a href="index.html" class="logo" style="text-decoration:none;">Tk<span>Asistan</span></a>
+    
+    <div style="display: flex; align-items: center; gap: 15px;">
+        <div class="nav-settings-wrapper" id="settingsWrapper" style="display: none;">
+            <div class="nav-settings" id="settingsBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                <div class="status-dot" id="statusDot"></div>
+            </div>
+            <div class="settings-panel" id="settingsPanel">
+                <div class="counter-pill"><span class="counter-pill-title">MİZAN FARKI</span><span class="counter-value" id="mizanDiff">0,00</span></div>
+                <div class="counter-pill"><span class="counter-pill-title">ÇALIŞMA FARKI</span><span class="counter-value" id="magicDiff">0,00</span></div>
+            </div>
+        </div>
+        
+        <span class="user-info" id="userNameDisplay"></span>
+        <button class="btn-logout" onclick="cikisYap()">Çıkış Yap</button>
+    </div>
+</div>
+
+<div id="landingView"><button class="huge-upload-btn" onclick="document.getElementById('pdfUpload').click()">MİZAN PDF YÜKLE</button></div>
+
+<div id="appView">
+    <div class="action-panel">
+        <div class="action-left">
+            <button class="btn" onclick="document.getElementById('pdfUpload').click()">📄 Yeni PDF</button>
+            <button class="btn btn-mahsup" id="mahsuplasmaBtn">🔄 Mahsuplaşma</button>
+            <button class="btn btn-copy" id="copyMagicBtn">📋 EBYS Kopyala</button>
+        </div>
+        <div class="period-badge" id="periodBadge"></div>
+    </div>
+    
+    <div id="mizanContainer">
+        <div class="table-wrapper" id="mizanWrapper">
+            <table id="mizanTable">
+                <thead><tr><th>Hesap No</th><th>Hesap Adı</th><th>Borç</th><th>Alacak</th><th>Borç Bakiye</th><th>Alacak Bakiye</th></tr></thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+    
+    <div id="magicContainer" style="display:none; text-align: center;">
+        <div class="table-wrapper" id="magicWrapper">
+            <table id="magicTable">
+                <thead><tr><th>Koop. No.</th><th>Koop. Adı</th><th style="text-align: right;">Borcumuz</th><th style="text-align: right;">Alacağımız</th><th style="text-align: left !important;">Valör</th></tr></thead>
+                <tbody id="magicTableBody"></tbody>
+            </table>
+        </div>
+        <div id="accuracyText" class="accuracy-text"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('userNameDisplay').innerText = "Hoş Geldin, " + (localStorage.getItem('tk_oturum') || "Kullanıcı");
+    function cikisYap() { localStorage.clear(); window.location.href = 'giris.html'; }
+
+    let rawDateStr = "31.01.2026", ebysHeaderGlobal = "2026", selectedRow = null;
+    const contextMenu = document.getElementById('customContextMenu'), deleteMenuItem = document.getElementById('deleteMenuItem');
+
+    document.addEventListener('contextmenu', e => { const tr = e.target.closest('tbody tr'); if (tr) { e.preventDefault(); selectedRow = tr; contextMenu.style.top = `${e.clientY}px`; contextMenu.style.left = `${e.clientX}px`; contextMenu.style.display = 'block'; } else { contextMenu.style.display = 'none'; } });
+    document.addEventListener('click', () => contextMenu.style.display = 'none');
+    deleteMenuItem.onclick = () => { if (selectedRow) { deleteRowAndSync(selectedRow); contextMenu.style.display = 'none'; } };
+
+    function deleteRowAndSync(tr) {
+        const rawNo = tr.dataset.rawNo || "", b = parseTr(tr.cells[2].innerText), a = parseTr(tr.cells[3].innerText), bb = parseTr(tr.cells[4].innerText), ba = parseTr(tr.cells[5].innerText);
+        if (tr.parentElement.id === 'tableBody') {
+            document.querySelectorAll("#tableBody tr").forEach(row => { const rowNo = row.dataset.rawNo || ""; if (rawNo !== rowNo && rawNo.startsWith(rowNo)) { updateCell(row.cells[2], -b); updateCell(row.cells[3], -a); updateCell(row.cells[4], -bb); updateCell(row.cells[5], -ba); } });
+            document.querySelectorAll("#tableBody tr").forEach(row => { const rowNo = row.dataset.rawNo || ""; if (rawNo !== rowNo && rowNo.startsWith(rawNo)) { row.remove(); } });
+        }
+        tr.remove(); updateCounters();
+    }
+    
+    function updateCell(cell, delta) { let val = parseTr(cell.innerText) + delta; cell.innerText = (Math.abs(val) < 0.01) ? "" : val.toLocaleString('tr-TR', {minimumFractionDigits:2}); }
+    function parseTr(t){ return parseFloat((t||"0").toString().replace(/\./g,'').replace(',','.'))||0; }
+    function formatTr(v){ return v === 0 ? "" : v.toLocaleString('tr-TR',{minimumFractionDigits:2}); }
+
+    document.getElementById('magicTableBody').addEventListener('input', () => updateCounters());
+
+    async function generateMagicTable() {
+        const sendData = [];
+        const rawMizanData = [];
+
+        document.querySelectorAll("#tableBody tr").forEach(r => { 
+            const raw = r.dataset.rawNo || ""; 
+            if ((raw.startsWith('12030') || raw.startsWith('32030')) && raw.length === 14) { 
+                sendData.push({ 
+                    koopNo: raw.slice(-5).replace(/^0+/, ''),
+                    bb: parseTr(r.cells[4].innerText), 
+                    ba: parseTr(r.cells[5].innerText) 
+                }); 
+            }
+            
+            rawMizanData.push({
+                no: r.cells[0].innerText,
+                ad: r.cells[1].innerText,
+                borc: r.cells[2].innerText,
+                alacak: r.cells[3].innerText,
+                borcBakiye: r.cells[4].innerText,
+                alacakBakiye: r.cells[5].innerText
+            });
+        });
+
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        try {
+            const res = await fetch('/api/hesapla.php', { 
+                method: 'POST', 
+                body: JSON.stringify({ 
+                    rows: sendData, 
+                    rawMizan: rawMizanData, 
+                    date: rawDateStr, 
+                    kullaniciAdi: localStorage.getItem('tk_oturum') || "Bilinmiyor" 
+                }) 
+            });
+            const result = await res.json();
+            
+            // BORCUMUZ OLANLARIN ÜSTTE ÇIKMASI İÇİN SIRALAMA KURALI
+            result.tableData.sort((a, b) => {
+                let aBorcumuzVar = parseTr(a.alacak) > 0 ? 1 : 0; 
+                let bBorcumuzVar = parseTr(b.alacak) > 0 ? 1 : 0;
+                if (aBorcumuzVar !== bBorcumuzVar) return bBorcumuzVar - aBorcumuzVar; 
+                return String(a.ad).localeCompare(String(b.ad));
+            });
+
+            const body = document.getElementById('magicTableBody'); body.innerHTML = '';
+            
+            result.tableData.forEach(i => { 
+                const tr = document.createElement('tr'); 
+                // İÇERİK DE YENİ SÜTUN SIRASINA GÖRE GÜNCELLENDİ (i.alacak = Borcumuz, i.borc = Alacağımız)
+                tr.innerHTML = `<td contenteditable="true">${i.k}</td><td contenteditable="true">${i.ad}</td><td class="num-cell" contenteditable="true">${i.alacak}</td><td class="num-cell" contenteditable="true">${i.borc}</td><td contenteditable="true" style="text-align: left !important;">${i.valor}</td>`; 
+                body.appendChild(tr); 
+            });
+            
+            ebysHeaderGlobal = result.ebysHeaderDate; 
+            document.getElementById('magicContainer').style.display = 'block'; 
+            updateCounters();
+        } catch (e) {
+            alert("Sunucuya bağlanılırken bir hata oluştu.");
+        } finally { document.getElementById('loadingOverlay').style.display = 'none'; }
+    }
+
+    let isMahsupMode = false;
+    document.getElementById('mahsuplasmaBtn').onclick = function() {
+        isMahsupMode = !isMahsupMode; this.innerHTML = isMahsupMode ? '🔙 Başa Dön' : '🔄 Mahsuplaşma'; this.style.background = isMahsupMode ? '#64748b' : '#6366f1';
+        document.querySelectorAll("#tableBody tr").forEach(r => { const raw = r.dataset.rawNo || ""; r.style.display = isMahsupMode && !(raw.startsWith('12030') || raw.startsWith('32030')) ? 'none' : ''; });
+        if(isMahsupMode) { document.getElementById('mizanContainer').style.display='none'; generateMagicTable(); document.getElementById('copyMagicBtn').style.visibility='visible'; } else { document.getElementById('mizanContainer').style.display='block'; document.getElementById('magicContainer').style.display='none'; document.getElementById('copyMagicBtn').style.visibility='hidden'; }
+    };
+
+    // EBYS KOPYALAMA VE OTOMATİK VALÖR
+    document.getElementById('copyMagicBtn').onclick = async function() {
+        const table = document.getElementById('magicTable'); 
+        const clone = table.cloneNode(true); 
+        
+        let ebysAyYil = ebysHeaderGlobal; 
+        let aySonuTarihi = "";
+        
+        if (rawDateStr && rawDateStr.includes('.')) {
+            const parcalar = rawDateStr.split('.');
+            if (parcalar.length === 3) {
+                const ayDegeri = parseInt(parcalar[1], 10);
+                const ayIndex = ayDegeri - 1; 
+                const yil = parcalar[2]; 
+                const aylar = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+                
+                if(ayIndex >= 0 && ayIndex < 12) {
+                    ebysAyYil = `${yil} ${aylar[ayIndex]}`; 
+                    const sonGun = new Date(yil, ayDegeri, 0).getDate();
+                    const formatliAy = ayDegeri < 10 ? '0' + ayDegeri : ayDegeri;
+                    aySonuTarihi = `${sonGun}.${formatliAy}.${yil}`;
+                }
+            }
+        }
+
+        clone.querySelectorAll('tbody tr').forEach(row => {
+            // SÜTUN YERLERİ DEĞİŞTİĞİ İÇİN ALACAĞIMIZ ARTIK 3. HÜCREDE (0, 1, 2, 3)
+            if (row.cells.length >= 5) {
+                const alacakMetni = row.cells[3].innerText || "0"; 
+                const alacakMiktari = parseFloat(alacakMetni.replace(/\./g, '').replace(',', '.')) || 0;
+                
+                // Alacağımız varsa valörü atar
+                if (alacakMiktari > 0 && aySonuTarihi !== "") {
+                    row.cells[4].innerText = aySonuTarihi;
+                }
+            }
+        });
+
+        clone.setAttribute('border','1'); 
+        clone.setAttribute('align', 'center'); 
+        clone.style.borderCollapse='collapse'; 
+        clone.style.width='85%'; 
+        clone.style.margin='0 auto'; 
+        
+        clone.querySelectorAll('th, td').forEach(c => { 
+            c.style.border='1px solid #000'; 
+            c.style.padding='8px'; 
+            if(c.classList.contains('num-cell')) c.style.textAlign='right'; 
+            else c.style.textAlign='left'; 
+        });
+
+        const header = `
+        <div style="font-family:Arial, sans-serif; font-size:12pt; text-align:left; width:85%; margin:0 auto 20px auto; line-height:1.5;">
+            <p style="text-indent: 40px; margin-bottom: 15px;">
+                Kooperatifimizin <strong>${ebysAyYil}</strong> dönemi diğer kooperatifler ile olan Borç/Alacak durumu aşağıdaki tabloda belirtilmiştir.
+            </p>
+            <p style="text-indent: 40px; margin-bottom: 20px;">
+                Gereğini bilgilerinize arz/rica ederiz.
+            </p>
+        </div>
+        <div style="text-align: center; width: 100%;">
+            ${clone.outerHTML}
+        </div>`;
+
+        await navigator.clipboard.write([new ClipboardItem({ 'text/html': new Blob([header], { type: 'text/html' }) })]); 
+        alert("EBYS formatında kopyalandı.");
+    };
+
+    const pdfjsLib = window['pdfjs-dist/build/pdf']; pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    document.getElementById('pdfUpload').onchange = async (e) => {
+        const file = e.target.files[0]; if(!file) return;
+        document.getElementById('landingView').style.display='none'; document.getElementById('appView').style.display='block'; document.getElementById('settingsWrapper').style.display='block';
+        const reader = new FileReader();
+        reader.onload = async function() {
+            const pdf = await pdfjsLib.getDocument(new Uint8Array(this.result)).promise; const body = document.getElementById('tableBody'); body.innerHTML = '';
+            for(let i=1; i<=pdf.numPages; i++) {
+                const page = await pdf.getPage(i); const content = await page.getTextContent(); const viewport = page.getViewport({scale:1}); const rows = {};
+                content.items.forEach(it => { const match = it.str.match(/\b(\d{1,2})[\./-](\d{1,2})[\./-](\d{4})\b/); if(match) rawDateStr = match[0].replace(/[\/-]/g, '.'); const y = Math.round(it.transform[5]); if(!rows[y]) rows[y]=[]; rows[y].push(it); });
+                Object.keys(rows).sort((a,b)=>b-a).forEach(y => {
+                    const l = rows[y].sort((a,b)=>a.transform[4]-b.transform[4]); let c = {n:'', ad:'', b:'', a:'', bb:'', ba:''};
+                    l.forEach(it => { const r = it.transform[4]/viewport.width; if(r<0.16) c.n+=it.str; else if(r<0.46) c.ad+=it.str; else if(r<0.59) c.b+=it.str; else if(r<0.73) c.a+=it.str; else if(r<0.86) c.bb+=it.str; else c.ba+=it.str; });
+                    const raw = c.n.replace(/[^0-9]/g,'');
+                    if(raw.length > 0 && !(parseTr(c.bb)===0 && parseTr(c.ba)===0)) {
+                        const is14 = raw.length === 14; const tr = document.createElement('tr'); tr.dataset.rawNo = raw; if(!is14) tr.classList.add('row-parent');
+                        tr.innerHTML = `<td>${c.n.trim()}</td><td>${c.ad.trim()}</td><td class="num-cell">${c.b}</td><td class="num-cell">${c.a}</td><td class="num-cell">${c.bb}</td><td class="num-cell">${c.ba}</td>`; body.appendChild(tr);
+                    }
+                });
+            }
+            document.getElementById('periodBadge').innerText = "Belge Tarihi: " + rawDateStr; document.getElementById('periodBadge').style.visibility = 'visible'; updateCounters();
+        }; reader.readAsArrayBuffer(file);
+    };
+
+    function updateCounters() {
+        let v120=0, v320=0; document.querySelectorAll("#tableBody tr").forEach(r => { const n = r.dataset.rawNo; if(n==='12030') v120 = parseTr(r.cells[4].innerText); if(n==='32030') v320 = parseTr(r.cells[5].innerText); });
+        const d1 = Math.abs(v120-v320); document.getElementById('mizanDiff').innerText = formatTr(d1) || "0,00";
+        let mb=0, ma=0; document.querySelectorAll("#magicTableBody tr").forEach(r => { mb += parseTr(r.cells[2].innerText); ma += parseTr(r.cells[3].innerText); });
+        const d2 = Math.abs(mb-ma); document.getElementById('magicDiff').innerText = formatTr(d2) || "0,00"; 
+        
+        if(d2 > 0 || d1 > 0) document.getElementById('statusDot').style.display='block';
+        const magicWrap = document.getElementById('magicWrapper'), accText = document.getElementById('accuracyText');
+        if (magicWrap.offsetParent === null) return;
+        
+        if (d1 > 0 && Math.abs(d1 - d2) < 0.01) {
+            magicWrap.classList.add('glow-active'); magicWrap.classList.remove('glow-error'); accText.classList.add('show', 'accuracy-success'); accText.classList.remove('accuracy-error'); accText.innerHTML = "✨ Doğruluk oranı yüksek (Eşitlik Sağlandı)";
+        } else {
+            magicWrap.classList.remove('glow-active'); magicWrap.classList.add('glow-error'); accText.classList.add('show', 'accuracy-error'); accText.classList.remove('accuracy-success'); accText.innerHTML = "⚠️ Dikkat: Mizan ile Çalışma Tablosu arasında fark var!";
+        }
+    }
+    document.getElementById('settingsBtn').onclick = () => document.getElementById('settingsPanel').classList.toggle('active');
+</script>
+</body>
+</html>

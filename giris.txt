@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TkAsistan | Sisteme Giriş & Kayıt</title>
+    <link rel="stylesheet" href="stil.css">
+</head>
+<body class="page-login">
+
+    <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 450px; padding: 20px; box-sizing: border-box; align-items: center;">
+        
+        <div class="login-box" style="margin: 0; width: 100%;">
+            <div class="logo">Tk<span>Asistan</span></div>
+
+            <div class="tab-container">
+                <button class="tab-btn active" onclick="switchTab('login')">Giriş Yap</button>
+                <button class="tab-btn" onclick="switchTab('register')">Yeni Kayıt</button>
+            </div>
+
+            <div id="mesajKutusu" class="alert-box alert-info"></div>
+
+            <div id="loginView" class="form-view active">
+                <div class="input-group">
+                    <label>Kullanıcı Adı (Ad Soyad)</label>
+                    <input type="text" id="lKullanici" placeholder="Sisteme kayıtlı adınızı girin">
+                </div>
+                <div class="input-group">
+                    <label>Şifre</label>
+                    <input type="password" id="lSifre" placeholder="Şifrenizi girin" onkeypress="if(event.key === 'Enter') girisYap()">
+                </div>
+                <button class="btn-submit" onclick="girisYap()">Sisteme Gir &rarr;</button>
+            </div>
+
+            <div id="registerView" class="form-view">
+                <div class="input-group">
+                    <label>Adınız ve Soyadınız (Giriş için kullanılacak)</label>
+                    <input type="text" id="rAdSoyad" placeholder="Örn: Ahmet Yılmaz">
+                </div>
+                <div class="input-group">
+                    <label>Bağlı Olduğunuz Kooperatif</label>
+                    <select id="rKoop">
+                        <option value="" selected disabled>Lütfen Kooperatif Seçin...</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Sisteme Giriş Şifresi Belirleyin</label>
+                    <input type="password" id="rSifre" placeholder="Unutmayacağınız bir şifre girin">
+                </div>
+                <button class="btn-submit" onclick="kayitOl()" style="background:#10b981;">Hesabımı Oluştur ✔</button>
+            </div>
+        </div>
+
+        <div style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.5); width: 100%; box-sizing: border-box; text-align: left;">
+            <h4 style="margin: 0 0 15px 0; color: #0f172a; font-size: 15px; text-align: center;">ℹ️ Sistem Nasıl Kullanılır?</h4>
+            
+            <ol style="margin: 0 0 20px 0; padding-left: 20px; font-size: 13px; color: #475569; line-height: 1.5;">
+                <li style="margin-bottom: 8px;"><strong>Yeni Kayıt</strong> sekmesine tıklayarak kaydolun. <br><span style="color: #b91c1c; font-size: 11px;">(Kaydolurken bilgilerin doğruluğundan emin olun, aksi takdirde güvenlik gereği hesabınız kalıcı olarak kapatılabilir.)</span></li>
+                <li style="margin-bottom: 8px;">Oluşturduğunuz kullanıcı adı ve şifre ile sisteme giriş yapın.</li>
+                <li style="margin-bottom: 8px;"><strong>Mizan Mahsuplaşma</strong> butonuna tıklayın ve <strong style="color: #ef4444; font-weight: 900;">PDF</strong> olarak indirdiğiniz mizanı sisteme yükleyin.</li>
+                <li style="margin-bottom: 8px;"><strong>Mahsuplaşma</strong> butonuna basın, eğer ekranda yeşil fosforlu ışık yanıyorsa mahsuplaşmanız doğru demektir.</li>
+                <li><strong>EBYS Kopyala</strong> butonuna tıklayın ve EBYS editörüne CTRL+V kısayoluyla yapıştırın.</li>
+            </ol>
+
+            <video controls style="width: 100%; border-radius: 12px; background: #e2e8f0; outline: none; border: 1px solid #cbd5e1;">
+                <source src="tanitim.mp4" type="video/mp4">
+                Tarayıcınız video etiketini desteklemiyor.
+            </video>
+            
+            <span style="display: block; margin-top: 10px; font-size: 12px; color: #64748b; font-weight: 600; text-align: center;">Detaylı tanıtım videosu yakında eklenecektir.</span>
+        </div>
+
+        <div class="footer-text" style="margin-top: 0;">© 2026 TkAsistan Yönetim Sistemi</div>
+
+    </div>
+
+    <script>
+        if(localStorage.getItem('tk_oturum')) window.location.href = 'index.html';
+
+        const koopListesi = {
+            "1010": "Özlü", "1023": "Kurbanlı", "1059": "Ulaş", "1098": "Dalakdere", "1099": "Gözne", "1108": "Yeşiltepe", "1110": "Tomuk", "1112": "Fındıkpınarı", "1113": "Aslanköy", "1155": "Bozyazı", "152": "Dikilitaş", "153": "Tekke", "1541": "Uzuncaburç", "1658": "Kamberhüyüğü", "1711": "Kelahmet", "1741": "Huzurkent", "1819": "Taşucu", "2062": "Dağpazarı", "2148": "Aydıncık", "2152": "Demirözü", "2274": "Günyurdu", "2297": "Haydar", "2298": "Zeyne", "2320": "Pirömerli", "2346": "Kadelli", "2349": "Yeşilovacık", "2397": "Gülnar", "2404": "Anamur", "2481": "Nacarlı", "2514": "Çeşmeli", "255": "Tarsus", "2670": "Sebil", "271": "Mezitli", "2817": "Sarıkavak", "674": "Arpaçsakarlar", "683": "A.Tekirçiftliği", "744": "Erdemli", "746": "Güzeloluk", "79": "Evci", "849": "Mağara", "869": "Yenice", "904": "Çiçekli", "921": "Mut", "1139": "Yumurtalık", "145": "Kürkçüler", "1470": "Durak", "1480": "Pozantı", "1947": "Hamdilli", "1949": "Tuzla", "1953": "Sarımazı", "1999": "Mustafabeyli", "2001": "Kurtkulağı", "2011": "Salbaş", "2035": "İmamoğlu", "2043": "Kozan", "2069": "Dağıstan", "2083": "Burhanlı", "2163": "Mercin", "2167": "Mercimek", "2284": "Karayusuflu", "2331": "Tepecikören", "2362": "Ceyhan", "2372": "Sağkaya", "2457": "Tufanbeyli", "2459": "Adana", "2464": "Yeniyayla", "2626": "Belören", "2646": "Kaldırım", "2668": "Doruk", "2689": "Kadıköy", "2691": "Karaisalı", "2700": "Yeşildam", "2920": "Kırıklı", "404": "Gerdan", "456": "Misis", "474": "Buruk", "77": "Küçükdikili", "928": "Kösreli", "930": "Çınarlı", "931": "Baklalı", "1328": "Samandağ", "1353": "Altınözü", "1864": "Arsuz", "2053": "Serinyol", "2403": "Antakya", "2496": "Reyhanlı", "2532": "Kırıkhan", "2740": "Hassa", "2765": "Kumlu", "2885": "Yayladağı", "551": "Erzin", "654": "Yeşilköy", "1973": "Aşağıcıyanlı", "2023": "Yukarıbozkuyu", "2024": "Yalnızdut", "2071": "Yarbaşı", "2405": "Tacirli", "2425": "Osmaniye", "2503": "Aslanpınarı", "2520": "Toprakkale", "2525": "Cevdetiye", "2554": "Kadirli", "2749": "Hardallık", "2750": "Durmuşsofular", "2794": "Hasanbeyli", "2825": "Sumbas", "891": "Düziçi"
+        };
+
+        const select = document.getElementById('rKoop');
+        Object.entries(koopListesi)
+            .sort((a,b) => a[1].localeCompare(b[1])) 
+            .forEach(([no, ad]) => {
+                select.innerHTML += `<option value="${no} - ${ad}">${ad} (${no})</option>`;
+            });
+
+        function switchTab(tab) {
+            // TARAYICI CİHAZ KONTROLÜ
+            if(tab === 'register' && localStorage.getItem('tk_cihaz_kayitli')) {
+                mesajGoster("Güvenlik Kilidi: Bu bilgisayardan zaten bir hesap oluşturdunuz. Yeni bir kayıt yapamazsınız.", "error");
+                return;
+            }
+
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.form-view').forEach(v => v.classList.remove('active'));
+            document.getElementById('mesajKutusu').style.display = 'none';
+
+            if(tab === 'login') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('loginView').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('registerView').classList.add('active');
+            }
+        }
+
+        function mesajGoster(mesaj, tur) {
+            const kutu = document.getElementById('mesajKutusu');
+            kutu.className = `alert-box alert-${tur}`;
+            kutu.innerText = mesaj;
+            kutu.style.display = 'block';
+        }
+
+        async function girisYap() {
+            const k = document.getElementById('lKullanici').value.trim();
+            const s = document.getElementById('lSifre').value.trim();
+
+            if(!k || !s) return mesajGoster("Lütfen kullanıcı adı ve şifreyi doldurun.", "error");
+
+            try {
+                const res = await fetch('/api/auth-api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ islem: "login", kullanici: k, sifre: s })
+                });
+                const data = await res.json();
+                if(res.ok && data.success) {
+                    localStorage.setItem('tk_oturum', k);
+                    localStorage.setItem('tk_is_admin', data.isAdmin);
+                    window.location.href = 'index.html';
+                } else {
+                    mesajGoster(data.error || "Giriş başarısız.", "error");
+                }
+            } catch (e) { mesajGoster("Sunucuya bağlanılamadı.", "error"); }
+        }
+
+        async function kayitOl() {
+            const ad = document.getElementById('rAdSoyad').value.trim();
+            const koop = document.getElementById('rKoop').value;
+            const sifre = document.getElementById('rSifre').value.trim();
+
+            if(!ad || !koop || !sifre) return mesajGoster("Lütfen Ad Soyad, Kooperatif ve Şifre alanlarının tümünü doldurun.", "error");
+
+            try {
+                const res = await fetch('/api/auth-api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ islem: "register", adSoyad: ad, kooperatif: koop, sifre: sifre })
+                });
+                const data = await res.json();
+                if(res.ok && data.success) {
+                    // BAŞARILI KAYIT SONRASI CİHAZI KALICI OLARAK İŞARETLE
+                    localStorage.setItem('tk_cihaz_kayitli', 'true');
+                    
+                    mesajGoster("Kayıt başarılı! Şimdi belirlediğiniz Ad Soyad ve şifre ile giriş yapabilirsiniz.", "info");
+                    document.getElementById('lKullanici').value = ad;
+                    setTimeout(() => switchTab('login'), 2000);
+                } else {
+                    mesajGoster(data.error || "Kayıt olurken bir hata oluştu.", "error");
+                }
+            } catch (e) { mesajGoster("Sunucuya bağlanılamadı.", "error"); }
+        }
+    </script>
+</body>
+</html>

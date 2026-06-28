@@ -1,0 +1,192 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+
+:root {
+    --bg-body: #f1f5f9;
+    --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    --glass-bg: rgba(255, 255, 255, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --nav-bg: rgba(15, 15, 17, 0.85);
+    --nav-text: #f4f4f5;
+    --nav-muted: #a1a1aa;
+    --success-glow: #22c55e;
+    --error-glow: #ef4444;
+}
+
+/* =========================================
+    1. GENEL AYARLAR VE SAYFA YAPILARI (BODY)
+    ========================================= */
+body { font-family: 'Inter', sans-serif; color: var(--text-main); margin: 0; padding: 0; }
+
+/* Giris Ekrani Body */
+body.page-login { background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+
+/* Index (Ana Sayfa) Body */
+body.page-index { background: #f1f5f9; padding: 20px; }
+
+/* Mahsuplasma Body */
+body.page-app { background: var(--bg-gradient); min-height: 100vh; overflow-x: hidden; -webkit-user-select: none; user-select: none; }
+
+
+/* =========================================
+    2. ORTAK BİLEŞENLER (LOGO, NAVBAR, MENÜLER)
+    ========================================= */
+.logo { font-size: 2rem; font-weight: 800; color: #0f172a; margin-bottom: 5px; }
+.logo span { color: #64748b; font-weight: 300; }
+
+/* Index Navbar */
+.navbar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 30px;}
+.navbar .logo { font-size: 1.5rem; margin-bottom: 0; }
+.user-info { font-weight: 600; color: #0ea5e9; }
+.btn-logout { background: #ef4444; color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left:15px;}
+
+/* Ayar İkonu (Çark) Düzeltmesi */
+.nav-settings { width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; color: #64748b; transition: 0.2s;}
+.nav-settings:hover { background: #f1f5f9; color: #0f172a;}
+
+/* Mahsuplasma Top Navbar */
+.top-navbar { position: sticky; top: 0; width: 100%; height: 70px; background: var(--nav-bg); backdrop-filter: blur(24px); border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-sizing: border-box; z-index: 1000; }
+.nav-brand { font-size: 1.4rem; font-weight: 800; letter-spacing: -1px; color: var(--nav-text); text-decoration: none; display: flex; align-items: center;}
+.nav-brand span { color: var(--nav-muted); font-weight: 300; }
+
+/* Sag Tik Menuleri */
+#customContextMenu, #contextMenu { position: fixed; background: white; border: 1px solid #cbd5e1; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border-radius: 8px; padding: 5px 0; z-index: 5000; display: none; width: 180px; }
+.menu-item { padding: 10px 15px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: 0.2s; color: #0f172a;}
+.menu-item:hover { background: #f1f5f9; }
+.menu-item.red { color: #ef4444; }
+.menu-item.red:hover { background: #fee2e2; }
+
+/* =========================================
+    3. GİRİŞ EKRANI (giris.html)
+    ========================================= */
+.login-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border: 1px solid rgba(255,255,255,0.5); box-sizing: border-box;}
+.tab-container { display: flex; background: #f1f5f9; border-radius: 12px; margin-bottom: 25px; margin-top: 20px; padding: 5px; }
+.tab-btn { flex: 1; padding: 10px; border: none; background: transparent; font-weight: 600; color: #64748b; border-radius: 8px; cursor: pointer; transition: 0.3s; font-size: 14px;}
+.tab-btn.active { background: white; color: #0ea5e9; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.form-view { display: none; }
+.form-view.active { display: block; }
+.input-group { margin-bottom: 15px; text-align: left; }
+.input-group label { display: block; font-size: 13px; font-weight: 600; color: #475569; margin-bottom: 6px; }
+.input-group input, .input-group select { width: 100%; padding: 12px 15px; border: 1px solid #cbd5e1; border-radius: 10px; box-sizing: border-box; font-family: inherit; font-size: 14px; outline: none; transition: border-color 0.2s; background: #f8fafc; }
+.input-group input:focus, .input-group select:focus { border-color: #0ea5e9; background: white; }
+.btn-submit { background: #0ea5e9; color: white; border: none; padding: 14px; border-radius: 10px; width: 100%; font-size: 15px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 10px; }
+.btn-submit:hover { background: #0284c7; }
+.alert-box { padding: 12px; border-radius: 8px; font-size: 12px; font-weight: 600; margin-bottom: 15px; display: none; text-align: left; line-height: 1.5; }
+.alert-error { color: #b91c1c; background: #fee2e2; border: 1px solid #fca5a5; display: block;}
+.alert-info { color: #0f172a; background: #f1f5f9; border: 1px solid #cbd5e1; display: none;}
+.footer-text { margin-top: 25px; font-size: 12px; color: #94a3b8; }
+
+/* =========================================
+    4. ANA SAYFA VE SOHBET (index.html)
+    ========================================= */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto;}
+.card { background: white; padding: 30px; border-radius: 16px; text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); text-decoration: none; color: inherit; transition: transform 0.3s, border-color 0.3s; border: 1px solid #e2e8f0; display: block;}
+.card:hover { transform: translateY(-5px); }
+.card-icon { font-size: 3rem; margin-bottom: 15px; }
+.card-title { font-size: 1.2rem; font-weight: 800; margin-bottom: 10px; }
+.card-desc { color: #64748b; font-size: 0.9rem; }
+
+.chat-container { max-width: 1000px; margin: 0 auto 30px auto; background: white; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; height: 450px; overflow: hidden; position: relative;}
+.chat-header { background: #0f172a; color: white; padding: 15px 20px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+.admin-toolbar { background: #1e293b; padding: 10px 20px; display: none; gap: 10px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.1);}
+.admin-btn { background: rgba(255,255,255,0.1); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.2s;}
+.admin-btn:hover { background: rgba(255,255,255,0.2); }
+.admin-btn.danger { background: #ef4444; border-color: #b91c1c;}
+.admin-btn.danger:hover { background: #dc2626;}
+.chat-body { flex: 1; padding: 20px; overflow-y: auto; background: #f8fafc; display: flex; flex-direction: column; gap: 10px; position: relative;}
+.chat-msg { padding: 10px 15px; border-radius: 12px; max-width: 80%; font-size: 13px; line-height: 1.4; position: relative;}
+.chat-msg.me { background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; align-self: flex-end; border-bottom-right-radius: 2px;}
+.chat-msg.other { background: white; border: 1px solid #cbd5e1; color: #0f172a; align-self: flex-start; border-bottom-left-radius: 2px;}
+.chat-msg.admin { background: #1e293b; border: 1px solid #0f172a; color: white; align-self: flex-start; border-bottom-left-radius: 2px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+.admin-name { color: #ff3333; font-weight: 900; text-shadow: 0 0 8px rgba(255, 0, 0, 0.6); letter-spacing: 0.5px;}
+.chat-info { font-size: 11px; margin-bottom: 4px; display: block; font-weight: bold; opacity: 0.8;}
+.chat-locked-overlay { position: absolute; inset: 0; background: rgba(248, 250, 252, 0.6); backdrop-filter: blur(2px); display: none; z-index: 10;}
+.chat-footer { padding: 15px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; background: white; align-items: center; flex-wrap: wrap;}
+.chat-input { flex: 1; min-width: 200px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; font-family: inherit;}
+.chat-send { background: #0ea5e9; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; }
+.anon-wrapper { display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; color: #475569; cursor: pointer;}
+.anon-wrapper input { cursor: pointer; }
+
+/* =========================================
+    5. MAHSUPLAŞMA EKRANI (mahsuplasma.html)
+    ========================================= */
+.action-panel { background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); padding: 20px; border-radius: 16px; box-shadow: var(--glass-shadow); margin: 0 auto 30px auto; width: 96%; max-width: 1400px; display: flex; justify-content: space-between; align-items: center; min-height: 45px; }
+.action-left { display: flex; gap: 15px; }
+.btn { background: var(--bg-body); border: 1px solid rgba(0,0,0,0.1); color: var(--text-main); padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+.btn:hover { background: #e2e8f0; }
+.btn-mahsup { background: #6366f1; border-color: #4f46e5; color: white; }
+.btn-copy { background: #0ea5e9; border-color: #0284c7; color: white; visibility: hidden;}
+.period-badge { background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 8px 15px; border-radius: 30px; font-size: 13px; font-weight: 600; color: #475569; visibility: hidden; }
+
+.table-wrapper { background: var(--glass-bg); backdrop-filter: blur(16px); border-radius: 16px; box-shadow: var(--glass-shadow); overflow-x: auto; max-height: 60vh; margin: 0 auto; width: 96%; max-width: 1400px; border: 2px solid var(--glass-border); transition: all 0.3s ease; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; table-layout: fixed; } 
+th { background: rgba(255, 255, 255, 0.9); color: var(--text-main); padding: 15px; position: sticky; top: 0; z-index: 10; text-align: right; font-weight: 800; border-bottom: 1px solid rgba(0,0,0,0.1); }
+th:nth-child(1), th:nth-child(2) { text-align: left; }
+td { border-bottom: 1px solid rgba(0,0,0,0.05); padding: 12px 15px; color: var(--text-main); transition: background-color 0.2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+#mizanTable th:nth-child(1), #mizanTable td:nth-child(1) { width: 12%; }
+#mizanTable th:nth-child(2), #mizanTable td:nth-child(2) { width: 28%; }
+#mizanTable th:nth-child(3), #mizanTable td:nth-child(3) { width: 15%; }
+#mizanTable th:nth-child(4), #mizanTable td:nth-child(4) { width: 15%; }
+#mizanTable th:nth-child(5), #mizanTable td:nth-child(5) { width: 15%; }
+#mizanTable th:nth-child(6), #mizanTable td:nth-child(6) { width: 15%; }
+
+.row-parent td { background-color: rgba(0,0,0,0.02); font-weight: 800; color: #0f172a; }
+.num-cell { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600;}
+[contenteditable="true"] { outline: none; border-radius: 4px; padding: 4px 6px; border: 1px solid transparent; cursor: text; }
+[contenteditable="true"]:focus { background: rgba(255,255,255,0.8); border: 1px solid #cbd5e1; }
+tbody tr:hover { background-color: rgba(0,0,0,0.03); }
+
+.glow-active { box-shadow: 0 0 30px rgba(34, 197, 94, 0.4) !important; border-color: #22c55e !important; }
+.glow-error { box-shadow: 0 0 30px rgba(239, 68, 68, 0.4) !important; border-color: #ef4444 !important; }
+.accuracy-text { font-weight: 800; font-size: 13px; text-align: center; padding: 6px 20px; border-radius: 20px; display: inline-block; margin-top: 15px; visibility: hidden; opacity: 0; transition: all 0.3s; }
+.accuracy-text.show { visibility: visible; opacity: 1; }
+.accuracy-success { color: #15803d; background: #dcfce7; border: 1px solid #86efac; }
+.accuracy-error { color: #b91c1c; background: #fee2e2; border: 1px solid #fca5a5; }
+
+#landingView { height: calc(100vh - 70px); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+.huge-upload-btn { background: var(--nav-bg); color: var(--nav-text); font-size: 1.2rem; font-weight: 600; padding: 20px 60px; border-radius: 16px; cursor: pointer; box-shadow: 0 20px 40px rgba(0,0,0,0.15); display: flex; flex-direction: column; align-items: center; gap: 15px; border:none;}
+#appView { display: none; padding: 30px 20px; width: 100%; box-sizing: border-box;}
+#pdfUpload { display: none; }
+#loadingOverlay { position: fixed; inset:0; background: rgba(255,255,255,0.8); z-index: 2000; display: none; flex-direction: column; justify-content: center; align-items: center; color: #6366f1; }
+.spinner { border: 4px solid rgba(99, 102, 241, 0.2); border-top: 4px solid #6366f1; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+.nav-settings-wrapper { position: relative; }
+.status-dot { position: absolute; top: 8px; right: 8px; width: 8px; height: 8px; background-color: var(--success-glow); border-radius: 50%; display: none; }
+
+.settings-panel { position: absolute; top: 60px; right: 0; background: white; border: 1px solid #cbd5e1; border-radius: 12px; padding: 20px; width: 250px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); visibility: hidden; opacity: 0; transition: all 0.2s ease-in-out; z-index: 1001; box-sizing: border-box; }
+.settings-panel.active { visibility: visible; opacity: 1; transform: translateY(5px); }
+.counter-pill { background: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+.counter-pill:last-child { margin-bottom: 0; }
+.counter-pill-title { display: block; font-size: 11px; color: #64748b; font-weight: 800; margin-bottom: 5px; letter-spacing: 0.5px;}
+.counter-value { display: block; font-size: 22px; font-weight: 800; color: #0f172a; font-variant-numeric: tabular-nums; }
+
+/* =========================================
+    6. CANLI DESTEK (WIDGET)
+    ========================================= */
+.support-widget { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; align-items: flex-end; }
+.support-btn { background: #0f172a; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.2); transition: 0.3s; display: flex; justify-content: center; align-items: center;}
+.support-btn:hover { transform: scale(1.05); }
+
+.support-window { width: 320px; height: 450px; background: white; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; margin-bottom: 15px; border: 1px solid #e2e8f0;}
+.support-window.active { display: flex; animation: slideUp 0.3s ease-out; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.support-header { background: #0f172a; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
+.support-header h4 { margin: 0; font-size: 14px; display: flex; align-items: center; gap: 8px;}
+.support-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; }
+
+.support-body { flex: 1; padding: 15px; background: #f8fafc; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.support-footer { padding: 10px; border-top: 1px solid #e2e8f0; display: flex; gap: 5px; align-items: center; background: white;}
+.support-footer input[type="text"] { flex: 1; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; outline: none; }
+.support-footer button { background: #0ea5e9; color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-weight: bold;}
+.support-file-btn { background: #f1f5f9 !important; color: #475569 !important; border: 1px solid #cbd5e1 !important; padding: 10px !important;}
+
+/* Mesaj Balonları */
+.s-msg { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 85%; word-wrap: break-word;}
+.s-msg.admin { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; align-self: flex-start; border-bottom-left-radius: 2px; }
+.s-msg.user { background: #0f172a; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+.s-file-link { display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 6px; color: inherit; text-decoration: none; font-weight: bold; margin-top: 5px;}

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TkAsistan | Bakım Molası</title>
+    <link rel="stylesheet" href="stil.css">
+</head>
+<body class="page-login">
+    <div class="login-box" style="max-width: 500px; padding: 50px;">
+        <div class="logo">Tk<span>Asistan</span></div>
+        <div class="alert-box alert-error" style="font-size: 14px; margin-top: 25px; line-height: 1.6; text-align: center; display: block; border-color: #fca5a5;">
+            ⚠️ <strong>Sistem Kısa Süreliğine Bakımda!</strong><br><br>
+            Şu anda sizlere daha iyi hizmet verebilmek için altyapı güncellemeleri yapıyoruz. Lütfen kısa bir süre sonra tekrar deneyin. Anlayışınız için teşekkürler.
+        </div>
+    </div>
+</body>
+</html>

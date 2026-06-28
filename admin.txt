@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>TkAsistan | Admin Paneli</title>
+    <link rel="stylesheet" href="stil.css">
+    <style>
+        .split-screen { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;}
+        @media (max-width: 1000px) { .split-screen { grid-template-columns: 1fr; } }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { background: #f8fafc; padding: 12px; border-bottom: 2px solid #e2e8f0; font-size: 13px; position: sticky; top: 0;}
+        td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; }
+        .badge { background: #e0e7ff; color: #4f46e5; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        .badge-danger { background: #fee2e2; color: #ef4444; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 12px; }
+        
+        .btn-action { padding: 6px 10px; border-radius: 6px; border: none; font-size: 12px; font-weight: bold; cursor: pointer; color: white; transition: 0.2s;}
+        .btn-view { background: #0ea5e9; } .btn-ban { background: #f97316; } .btn-unban { background: #10b981; } .btn-del { background: #ef4444; } .btn-edit { background: #8b5cf6; } .btn-warn { background: #eab308; color:#000; }
+        
+        .table-container { max-height: 500px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;}
+        
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.7); display: none; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; width: 95%; max-width: 500px; box-shadow: 0 25px 50px rgba(0,0,0,0.2); }
+        .form-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #475569;}
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px;}
+        .btn-submit { background: #0ea5e9; color: white; border: none; padding: 14px; border-radius: 10px; width: 100%; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        
+        .req-box { background: #f8fafc; border: 1px solid #cbd5e1; padding: 15px; border-radius: 12px; margin-bottom: 15px; display:flex; justify-content:space-between; align-items:center;}
+        .req-info { font-size: 13px; color: #475569;}
+        .req-info strong { color: #0f172a; }
+        .pulse-btn { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+
+        /* CANLI DESTEK CSS EKLENTİSİ */
+        .user-list-item { padding: 15px; border-bottom: 1px solid #e2e8f0; cursor: pointer; font-weight: bold; display: flex; justify-content: space-between;}
+        .user-list-item:hover { background: #f8fafc; color: #0ea5e9;}
+        .user-list-item.active { background: #e0f2fe; border-left: 4px solid #0ea5e9; }
+        .s-msg { padding: 10px 14px; border-radius: 12px; font-size: 13px; max-width: 85%; word-wrap: break-word;}
+        .s-msg.admin { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .s-msg.user { background: #0f172a; color: white; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .s-file-link { display: inline-flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.1); padding: 5px 10px; border-radius: 6px; color: inherit; text-decoration: none; font-weight: bold; margin-top: 5px;}
+    </style>
+</head>
+<body class="page-index">
+
+    <div class="navbar" style="margin: 20px auto; width: 96%; max-width: 1400px;">
+        <a href="index.html" class="logo" style="text-decoration:none;">Sistem <span>Yönetimi</span></a>
+        <a href="index.html" style="text-decoration:none; color:#0ea5e9; font-weight:bold; margin-right: 15px;">&larr; Ana Sayfaya Dön</a>
+    </div>
+
+    <div style="width: 96%; max-width: 1400px; margin: 0 auto;">
+        
+        <div class="tab-container" style="background: white; border: 1px solid #e2e8f0;">
+            <button class="tab-btn active" onclick="sekmeDegistir('veriTab', this)">📊 Veri & Kullanıcılar</button>
+            <button class="tab-btn" onclick="sekmeDegistir('destekTab', this)">🎧 Canlı Destek</button>
+        </div>
+
+        <div id="veriTab" class="form-view active">
+            <div class="split-screen">
+                
+                <div class="card" style="margin-bottom: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">📄 Yüklenen Mizanlar</h3>
+                        <button class="btn-action btn-del" onclick="kayitlariTemizle()">Tümünü Sil</button>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Tarih</th><th>Kullanıcı</th><th>Dönem</th><th style="text-align: right;">İşlem</th></tr></thead>
+                            <tbody id="adminTableBody"><tr><td colspan="4" style="text-align: center;">Yükleniyor...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card" style="margin-bottom: 0;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h3 style="margin: 0;">👥 Kayıtlı Kullanıcılar</h3>
+                        <div style="display:flex; gap:10px;">
+                            <button class="btn-action btn-unban" onclick="document.getElementById('hesapEkleModal').style.display='flex'">+ Yeni Ekle</button>
+                            <button class="btn-action btn-del" id="kycBadgeBtn" style="display:none;" onclick="document.getElementById('kycModal').style.display='flex'">📋 İstekler (0)</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr><th>Kullanıcı Adı / Koop</th><th>Durum</th><th style="text-align: right;">Aksiyonlar</th></tr></thead>
+                            <tbody id="kullaniciTableBody"><tr><td colspan="3" style="text-align: center;">Yükleniyor...</td></tr></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="destekTab" class="form-view">
+            <div class="split-screen">
+                
+                <div class="card" style="padding:0;">
+                    <div style="padding: 15px; border-bottom: 1px solid #e2e8f0; background: #f8fafc;">
+                        <h3 style="margin: 0;">💬 Bekleyen Görüşmeler</h3>
+                    </div>
+                    <div id="destekUserList" style="max-height: 450px; overflow-y: auto;">
+                        <div style="padding: 20px; text-align:center; color:#64748b;">Mesaj bekleniyor...</div>
+                    </div>
+                </div>
+                
+                <div class="card" style="padding:0; display:flex; flex-direction:column; height: 500px; border: 2px solid #0f172a;">
+                    <div style="padding:15px; background:#0f172a; color:white; display:flex; justify-content:space-between;">
+                        <h3 style="margin:0;" id="activeDestekUser">Kullanıcı Seçin</h3>
+                        <span style="font-size:12px; opacity:0.8;">🟢 Sen Online'sın</span>
+                    </div>
+                    
+                    <div id="destekChatBody" style="flex:1; overflow-y:auto; padding:15px; background:#f8fafc; display:flex; flex-direction:column; gap:10px;">
+                        <div style="text-align:center; color:#64748b; margin-top:50px;">Sohbeti başlatmak için soldan bir kullanıcı seçin.</div>
+                    </div>
+                    
+                    <div style="padding:15px; background:white; border-top:1px solid #e2e8f0; display:flex; gap:10px;">
+                        <input type="file" id="destekAdminFile" style="display:none;" accept=".jpg,.png,.pdf,.doc,.docx,.xls,.xlsx">
+                        <button onclick="document.getElementById('destekAdminFile').click()" class="btn-action btn-edit" style="font-size:18px;" title="Dosya/Fotoğraf Ekle">📎</button>
+                        <input type="text" id="destekAdminInput" style="flex:1; padding:10px; border:1px solid #cbd5e1; border-radius:8px;" placeholder="Cevap yazın..." onkeypress="if(event.key === 'Enter') adminDestekGonder()">
+                        <button onclick="adminDestekGonder()" class="btn-action btn-view" style="padding: 10px 20px; font-size:14px;">Gönder</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="kycModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
+                <h3 style="margin:0;">📝 İsim Değişikliği İstekleri</h3>
+                <button onclick="document.getElementById('kycModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:#ef4444;">✖</button>
+            </div>
+            <div id="kycListBody" style="max-height:400px; overflow-y:auto;"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="mizanModal">
+        <div class="modal-content" style="max-width: 950px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 15px;">
+                <div>
+                    <h3 style="margin:0; color:#0f172a;">📄 Orijinal Mizan Tablosu</h3>
+                    <small id="detayAltBaslik" style="color:#64748b; font-weight:bold;"></small>
+                </div>
+                <button onclick="document.getElementById('mizanModal').style.display='none'" style="background:none; border:none; font-size:20px; cursor:pointer; color:#ef4444; font-weight:bold;">✖</button>
+            </div>
+            <div style="max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 8px;">
+                <table id="exportTable">
+                    <thead style="position: sticky; top: 0; background: #f8fafc; z-index: 10;">
+                        <tr><th>Hesap No</th><th>Hesap Adı</th><th style="text-align: right;">Borç</th><th style="text-align: right;">Alacak</th><th style="text-align: right;">Borç Bakiye</th><th style="text-align: right;">Alacak Bakiye</th></tr>
+                    </thead>
+                    <tbody id="mizanTableBody"></tbody>
+                </table>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn-submit" onclick="excelOlarakIndir()" style="background: #10b981; margin-top: 0;">📊 Excel Olarak İndir</button>
+                <button class="btn-submit" onclick="document.getElementById('mizanModal').style.display='none'" style="background: #ef4444; margin-top: 0;">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">Şifre / İsim Değiştir</h3>
+            <input type="hidden" id="eskiKullaniciAdi">
+            <div class="form-group"><label>Kullanıcı Adı</label><input type="text" id="yeniKullaniciAdi"></div>
+            <div class="form-group"><label>Yeni Şifre Belirle</label><input type="text" id="yeniSifre" placeholder="Boş bırakırsanız şifresi değişmez"></div>
+            <button class="btn-submit" onclick="kullaniciyiKaydet()" style="margin-bottom:10px;">💾 Değişiklikleri Kaydet</button>
+            <button class="btn-submit" onclick="document.getElementById('editModal').style.display='none'" style="background: #ef4444;">İptal Et</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="hesapEkleModal">
+        <div class="modal-content" style="max-width: 400px;">
+            <h3 style="margin-top:0; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">Manuel Hesap Ekle</h3>
+            <div class="form-group"><label>Ad Soyad</label><input type="text" id="yeniHesapAd"></div>
+            <div class="form-group"><label>Şifre</label><input type="text" id="yeniHesapSifre"></div>
+            <button class="btn-submit" onclick="hesapEkleTekli()" style="margin-bottom:10px;">Hesabı Oluştur</button>
+            <button class="btn-submit" onclick="document.getElementById('hesapEkleModal').style.display='none'" style="background: #ef4444;">İptal Et</button>
+        </div>
+    </div>
+
+    <script>
+        // YETKİ KONTROLÜ
+        if(localStorage.getItem('tk_is_admin') !== "true" && localStorage.getItem('tk_is_admin') !== "1") { 
+            window.location.href = 'index.html'; 
+        } else { 
+            kayitlariGetir(); 
+            kullanicilariYukle(); 
+            kycİstekleriniGetir(); 
+            setInterval(kycİstekleriniGetir, 5000); 
+            setInterval(destekHeartbeatVeListe, 3000); // Canlı Destek döngüsü başlatıldı
+        }
+
+        // SEKME DEĞİŞTİRME FONKSİYONU
+        function sekmeDegistir(tabId, btn) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.form-view').forEach(v => v.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
+
+        // ==========================================
+        // 1. CANLI DESTEK FONKSİYONLARI (GERİ EKLENDİ!)
+        // ==========================================
+        let aktifDestekUser = null;
+
+        function destekHeartbeatVeListe() {
+            let fd = new FormData(); fd.append('islem', 'heartbeat');
+            fetch('/api/destek-api.php', { method: 'POST', body: fd });
+            destekListesiGuncelle();
+            if(aktifDestekUser) destekMesajlariGetir(aktifDestekUser);
+        }
+
+        async function destekListesiGuncelle() {
+            let fd = new FormData(); fd.append('islem', 'get_conversations');
+            let res = await fetch('/api/destek-api.php', { method: 'POST', body: fd });
+            let data = await res.json();
+            
+            let html = "";
+            data.forEach(d => {
+                let activeClass = (aktifDestekUser === d.gonderen) ? 'active' : '';
+                html += `<div class="user-list-item ${activeClass}" onclick="kullaniciSohbetAc('${d.gonderen}')">👤 ${d.gonderen}</div>`;
+            });
+            document.getElementById('destekUserList').innerHTML = html || "<div style='padding:20px; text-align:center;'>Kimse mesaj atmadı.</div>";
+        }
+
+        function kullaniciSohbetAc(user) { 
+            aktifDestekUser = user; 
+            document.getElementById('activeDestekUser').innerText = "Kullanıcı: " + user; 
+            destekMesajlariGetir(user); 
+        }
+
+        async function destekMesajlariGetir(user) {
+            let fd = new FormData(); fd.append('islem', 'get_messages'); fd.append('user1', user); fd.append('user2', 'admin');
+            let res = await fetch('/api/destek-api.php', { method: 'POST', body: fd });
+            let msgs = await res.json();
+            
+            let html = "";
+            msgs.forEach(m => {
+                let isMe = m.gonderen === 'admin';
+                let styleClass = isMe ? 'admin' : 'user'; 
+                let dosyaHtml = "";
+                if(m.dosya) dosyaHtml = `<br><a href="/${m.dosya}" target="_blank" class="s-file-link">📎 Ekli Dosya</a>`;
+                
+                html += `<div class="s-msg ${styleClass}"><b>${isMe ? 'Sen' : m.gonderen}</b><br>${m.mesaj} ${dosyaHtml} <div style="font-size:10px; opacity:0.7; margin-top:5px; text-align:right;">${m.tarih}</div></div>`;
+            });
+            
+            let b = document.getElementById('destekChatBody');
+            let isAtBottom = b.scrollHeight - b.clientHeight <= b.scrollTop + 15;
+            b.innerHTML = html;
+            if(isAtBottom) b.scrollTop = b.scrollHeight;
+        }
+
+        async function adminDestekGonder() {
+            if(!aktifDestekUser) return alert("Önce soldan bir kullanıcı seçin.");
+            const input = document.getElementById('destekAdminInput');
+            const fileInput = document.getElementById('destekAdminFile');
+            const mesaj = input.value.trim();
+            const dosya = fileInput.files[0];
+
+            if(!mesaj && !dosya) return;
+
+            let fd = new FormData();
+            fd.append('islem', 'send'); fd.append('gonderen', 'admin'); fd.append('alici', aktifDestekUser); fd.append('mesaj', mesaj);
+            if(dosya) fd.append('dosya', dosya);
+
+            input.value = ''; fileInput.value = '';
+            await fetch('/api/destek-api.php', { method: 'POST', body: fd });
+            destekMesajlariGetir(aktifDestekUser);
+        }
+
+        // ==========================================
+        // 2. MİZAN TABLOSU FONKSİYONLARI
+        // ==========================================
+        let tumIslemKayitlari = []; 
+        async function kayitlariGetir() { 
+            let res = await fetch('/api/admin-api.php'); 
+            let data = await res.json(); 
+            tumIslemKayitlari = data; 
+            let tbody = document.getElementById('adminTableBody'); 
+            if(!data || data.length === 0) return tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">Kayıt bulunamadı.</td></tr>'; 
+            
+            let html = ""; 
+            data.forEach(k => { 
+                html += `<tr>
+                    <td>${k.islemTarihi}</td>
+                    <td><span class="badge">${k.islemYapan}</span></td>
+                    <td><strong>${k.mizanDonemi}</strong></td>
+                    <td style="text-align: right;"><button class="btn-action btn-view" onclick="mizanDetayGoster(${k.id})">👁️ Gör</button></td>
+                </tr>`; 
+            }); 
+            tbody.innerHTML = html; 
+        }
+
+        async function kayitlariTemizle() { 
+            if(!confirm("Tüm mizan kayıtlarını silmek istediğinize emin misiniz?")) return;
+            await fetch('/api/admin-api.php', { method: 'POST', body: JSON.stringify({ islem: "temizle" }) }); 
+            kayitlariGetir(); 
+        }
+
+        function mizanDetayGoster(kayitId) {
+            const kayit = tumIslemKayitlari.find(k => Number(k.id) === Number(kayitId));
+            if(!kayit) return alert("Kayıt bulunamadı.");
+            let mizanVerisi = kayit.orijinalMizan;
+            if (typeof mizanVerisi === 'string') { try { mizanVerisi = JSON.parse(mizanVerisi); } catch(e) { mizanVerisi = []; } }
+            
+            document.getElementById('detayAltBaslik').innerText = `${kayit.islemYapan} | Dönem: ${kayit.mizanDonemi}`;
+            let html = "";
+            mizanVerisi.forEach(m => {
+                if(m.no !== undefined) {
+                    html += `<tr><td style="font-family:monospace; font-weight:bold;">${m.no}</td><td>${m.ad}</td><td style="text-align:right;">${m.borc}</td><td style="text-align:right;">${m.alacak}</td><td style="text-align:right;">${m.borcBakiye}</td><td style="text-align:right;">${m.alacakBakiye}</td></tr>`;
+                }
+            });
+            document.getElementById('mizanTableBody').innerHTML = html || `<tr><td colspan="6" style="text-align:center; color:#ef4444;">Veri uyumsuzluğu.</td></tr>`;
+            document.getElementById('mizanModal').style.display = 'flex';
+        }
+
+        function excelOlarakIndir() {
+            const table = document.getElementById("exportTable"); let html = table.outerHTML;
+            const uri = 'data:application/vnd.ms-excel;base64,';
+            const template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="UTF-8"></head><body>{table}</body></html>';
+            const base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) };
+            const format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) };
+            const ctx = { worksheet: 'OrijinalMizan', table: html };
+            const a = document.createElement('a'); a.href = uri + base64(format(template, ctx)); a.download = 'Mizan_Tablosu.xls'; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        // ==========================================
+        // 3. KULLANICI YÖNETİMİ VE KYC İŞLEMLERİ
+        // ==========================================
+        async function kullanicilariYukle() { 
+            let res = await fetch('/api/auth-api.php'); let data = await res.json(); let tbody = document.getElementById('kullaniciTableBody'); 
+            let html = ""; 
+            data.forEach(u => { 
+                if (u.username === 'admin') return; 
+                const isBanned = (u.is_banned == 1); 
+                const kycStatus = u.kyc_status;
+                
+                let durumGorseli = '<span class="badge" style="background:#dcfce7; color:#15803d;">🟢 Aktif</span>';
+                if(isBanned) durumGorseli = '<span class="badge-danger">⛔ Yasaklı</span>';
+                else if(kycStatus == 1) durumGorseli = '<span class="badge" style="background:#fef08a; color:#a16207;">⚠️ Uyarıldı</span>';
+                else if(kycStatus == 2) durumGorseli = '<span class="badge" style="background:#bae6fd; color:#0369a1;">⏳ Bekliyor</span>';
+
+                html += `<tr>
+                    <td><strong>${u.username}</strong><br><small style="color:#64748b;">${u.kooperatif || 'Bilinmiyor'}</small></td>
+                    <td>${durumGorseli}</td>
+                    <td style="text-align: right; display:flex; gap:5px; justify-content:flex-end;">
+                        <button class="btn-action btn-warn" title="Uyarı At" onclick="uyariGonder('${u.username}')">⚠️ Uyarı</button>
+                        ${isBanned ? `<button class="btn-action btn-unban" onclick="kullaniciBanla('${u.username}', false)">✔️ Aç</button>` : `<button class="btn-action btn-ban" onclick="kullaniciBanla('${u.username}', true)">⛔ Banla</button>`}
+                        <button class="btn-action btn-edit" title="Şifre Değiştir" onclick="duzenleModaliniAc('${u.username}')">🔑</button>
+                        <button class="btn-action btn-del" title="Tamamen Sil" onclick="kullaniciSil('${u.username}')">🗑️</button>
+                    </td>
+                </tr>`; 
+            }); 
+            tbody.innerHTML = html || '<tr><td colspan="3" style="text-align:center;">Kullanıcı Yok</td></tr>'; 
+        }
+
+        async function uyariGonder(user) {
+            if(!confirm(`'${user}' isimli kullanıcının ekranını kilitleyip gerçek bilgilerini girmesini istemekte emin misiniz?`)) return;
+            await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: "kyc_uyari_gonder", username: user }) });
+            kullanicilariYukle(); alert("Uyarı gönderildi, kullanıcının ekranı kilitlendi.");
+        }
+
+        async function kullaniciBanla(username, statu) { await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: "hesap_banla", username: username, statu: statu }) }); kullanicilariYukle(); }
+        async function kullaniciSil(username) { if(confirm("Emin misiniz?")) { await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: "hesap_sil", username: username }) }); kullanicilariYukle(); } }
+        function duzenleModaliniAc(username) { document.getElementById('eskiKullaniciAdi').value = username; document.getElementById('yeniKullaniciAdi').value = username; document.getElementById('yeniSifre').value = ''; document.getElementById('editModal').style.display = 'flex'; }
+        
+        async function kullaniciyiKaydet() {
+            const eski = document.getElementById('eskiKullaniciAdi').value; const yeni = document.getElementById('yeniKullaniciAdi').value.trim(); const sifre = document.getElementById('yeniSifre').value.trim();
+            if (!yeni) return alert("Kullanıcı adı boş olamaz!");
+            await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: "kullanici_guncelle", eskiKullaniciAdi: eski, yeniKullaniciAdi: yeni, yeniSifre: sifre }) });
+            document.getElementById('editModal').style.display='none'; kullanicilariYukle(); alert("Bilgiler güncellendi!");
+        }
+
+        async function hesapEkleTekli() {
+            const ad = document.getElementById('yeniHesapAd').value.trim(); const sifre = document.getElementById('yeniHesapSifre').value.trim();
+            if(!ad || !sifre) return alert("Boş alan bırakmayın!");
+            await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: "admin_hesap_ekle", hesaplar: [{kullanici: ad, sifre: sifre}] }) });
+            document.getElementById('hesapEkleModal').style.display='none'; document.getElementById('yeniHesapAd').value = ''; document.getElementById('yeniHesapSifre').value = '';
+            kullanicilariYukle();
+        }
+
+        async function kycİstekleriniGetir() {
+            let res = await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: "get_pending_kyc" }) });
+            let data = await res.json();
+            const btn = document.getElementById('kycBadgeBtn');
+            if(data.length > 0) { btn.style.display = 'block'; btn.className = 'btn-action btn-del pulse-btn'; btn.innerText = `📋 İstekler (${data.length})`; } 
+            else { btn.style.display = 'none'; document.getElementById('kycModal').style.display = 'none'; }
+            let html = "";
+            data.forEach(d => {
+                html += `
+                <div class="req-box">
+                    <div class="req-info">
+                        <span style="color:#ef4444; font-weight:bold; font-size:11px;">ESKİ BİLGİ:</span><br>
+                        ${d.username} <br> <small>${d.kooperatif || 'Yok'}</small><br><br>
+                        <span style="color:#10b981; font-weight:bold; font-size:11px;">YENİ İSTENEN BİLGİ:</span><br>
+                        <strong>${d.pending_name}</strong> <br> <small>${d.pending_koop}</small>
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:5px;">
+                        <button class="btn-action btn-unban" onclick="kycIslem('${d.username}', 'onayla')">✔️ Onayla</button>
+                        <button class="btn-action btn-del" onclick="kycIslem('${d.username}', 'reddet')">✖ Reddet</button>
+                    </div>
+                </div>`;
+            });
+            document.getElementById('kycListBody').innerHTML = html || "<div style='text-align:center; padding:20px; color:#64748b;'>Bekleyen istek yok.</div>";
+        }
+
+        async function kycIslem(user, tip) {
+            let islemTipi = (tip === 'onayla') ? 'kyc_onayla' : 'kyc_reddet';
+            await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: islemTipi, username: user }) });
+            kycİstekleriniGetir(); kullanicilariYukle();
+        }
+    </script>
+</body>
+</html>

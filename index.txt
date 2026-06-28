@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TkAsistan | Ana Sayfa</title>
+    <link rel="stylesheet" href="stil.css">
+    <style>
+        /* KYC (KİMLİK) EKRAN KİLİDİ TASARIMI */
+        .kyc-overlay { position: fixed; inset: 0; background: rgba(241, 245, 249, 0.85); backdrop-filter: blur(15px); z-index: 999999; display: none; justify-content: center; align-items: center; flex-direction: column;}
+        .kyc-box { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 25px 50px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; border: 2px solid #ef4444; }
+        .form-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #475569; text-align: left;}
+        .form-group input, .form-group select { width: 100%; padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; outline:none;}
+        .btn-submit { background: #0ea5e9; color: white; border: none; padding: 14px; border-radius: 10px; width: 100%; font-size: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-submit:hover { background: #0284c7; }
+    </style>
+</head>
+<body class="page-index">
+    <script>if(!localStorage.getItem('tk_oturum')) { window.location.href = 'giris.html'; }</script>
+
+    <!-- SAĞ TIK MENÜSÜ (ADMİN İÇİN SOHBET YÖNETİMİ) -->
+    <div id="contextMenu">
+        <div class="menu-item red" id="menuSil">🗑️ Bu Mesajı Sil</div>
+        <div class="menu-item red" id="menuEngelle">🚫 Kullanıcıyı Engelle</div>
+    </div>
+
+    <!-- O YIKILMAZ KYC KİLİT EKRANI -->
+    <div class="kyc-overlay" id="kycOverlay">
+        <div class="kyc-box" id="kycFormBox" style="display:none;">
+            <div style="font-size:40px; margin-bottom:10px;">⚠️</div>
+            <h3 style="color:#ef4444; margin-top:0;">Yönetim Uyarısı</h3>
+            <p style="font-size:13px; color:#475569; margin-bottom:20px;" id="kycMessage">Güvenlik prosedürü gereği lütfen gerçek <b>Ad, Soyadınızı</b> ve <b>Kooperatifinizi</b> güncelleyiniz. Aksi halde sistemi kullanamazsınız.</p>
+            
+            <div class="form-group"><label>Gerçek Adınız ve Soyadınız</label><input type="text" id="kycAd" placeholder="Örn: Ahmet Yılmaz"></div>
+            <div class="form-group">
+                <label>Bağlı Olduğunuz Kooperatif</label>
+                <select id="kycKoop"><option value="" disabled selected>Lütfen Seçin...</option></select>
+            </div>
+            <button class="btn-submit" onclick="kycGonder()">Bilgilerimi İncelemeye Gönder</button>
+        </div>
+        <div class="kyc-box" id="kycWaitBox" style="display:none; border-color:#f59e0b;">
+            <div style="font-size:40px; margin-bottom:10px;">⏳</div>
+            <h3 style="color:#f59e0b; margin-top:0;">Onay Bekleniyor</h3>
+            <p style="font-size:14px; color:#475569; line-height:1.6;">Girdiğiniz bilgiler yönetime iletildi. Onaylandıktan sonra ekranınız otomatik olarak açılacak ve sistemi kullanmaya devam edebileceksiniz.</p>
+        </div>
+    </div>
+
+    <!-- NAVBAR -->
+    <div class="navbar">
+        <div class="logo">Tk<span>Asistan</span></div>
+        <div>
+            <span class="user-info" id="userNameDisplay"></span>
+            <button class="btn-logout" onclick="cikisYap()">Çıkış Yap</button>
+        </div>
+    </div>
+
+    <!-- ORTAK SOHBET -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <span id="chatTitle">🟢 Ortak Sohbet</span>
+        </div>
+        
+        <div class="admin-toolbar" id="adminToolbar">
+            <button class="admin-btn danger" onclick="sohbetiTemizle()">🧹 Tümünü Temizle</button>
+            <button class="admin-btn" id="btnToggleChat" onclick="sohbetDurumDegistir()">🔴 Sohbeti Kilitle</button>
+            <button class="admin-btn" onclick="limitBelirle()">⏳ Hız Sınırı Ayarla</button>
+            <button class="admin-btn" style="background:#f59e0b; border-color:#d97706;" onclick="engelleriKaldir()">🕊️ Tüm Engelleri Kaldır</button>
+        </div>
+
+        <div class="chat-body" id="chatBody">
+            <div class="chat-locked-overlay" id="chatLockedOverlay"></div>
+        </div>
+        
+        <div class="chat-footer">
+            <label class="anon-wrapper">
+                <input type="checkbox" id="anonimCheck"> Anonim olarak yaz
+            </label>
+            <input type="text" id="chatInput" class="chat-input" placeholder="Mesaj yazın..." onkeypress="if(event.key === 'Enter') mesajGonder()">
+            <button class="chat-send" onclick="mesajGonder()">Gönder</button>
+        </div>
+    </div>
+
+    <!-- MODÜLLER VE ADMİN BUTONU BURAYA YÜKLENECEK -->
+    <div class="grid" id="moduleGrid"><div style="text-align: center; color: #64748b;">Modüller Yükleniyor...</div></div>
+
+    <!-- CANLI DESTEK WIDGET -->
+    <div class="support-widget">
+        <div class="support-window" id="suppWindow">
+            <div class="support-header">
+                <div>
+                    <h4>Yönetim Destek <div class="support-dot" id="suppStatusDot"></div></h4>
+                    <small id="suppStatusText" style="font-size:10px; opacity:0.8;">Yükleniyor...</small>
+                </div>
+                <button onclick="document.getElementById('suppWindow').classList.remove('active')" style="background:none; border:none; color:white; cursor:pointer; font-size:18px;">✖</button>
+            </div>
+            <div style="padding:10px; text-align:center; font-size:11px; background:#e0f2fe; color:#0369a1; border-bottom:1px solid #bae6fd;" id="suppStatusDesc">Yönetimle iletişime geçebilirsiniz.</div>
+            <div class="support-body" id="suppBody"></div>
+            <div class="support-footer">
+                <input type="file" id="suppFile" style="display:none;" accept=".jpg,.png,.pdf,.doc,.docx,.xls,.xlsx">
+                <button class="support-file-btn" onclick="document.getElementById('suppFile').click()" title="Dosya Gönder">📎</button>
+                <input type="text" id="suppInput" placeholder="Mesajınız..." onkeypress="if(event.key === 'Enter') sendSupportMsg()">
+                <button onclick="sendSupportMsg()">&rarr;</button>
+            </div>
+        </div>
+        <button class="support-btn" onclick="document.getElementById('suppWindow').classList.toggle('active')">💬</button>
+    </div>
+
+    <script>
+        const myUser = localStorage.getItem('tk_oturum');
+        const isAdmin = localStorage.getItem('tk_is_admin') === 'true' || localStorage.getItem('tk_is_admin') === "1" || localStorage.getItem('tk_is_admin') === true;
+        
+        document.getElementById('userNameDisplay').innerText = "Hoş Geldin, " + myUser;
+        function cikisYap() { localStorage.clear(); window.location.href = 'giris.html'; }
+
+        // --- 1. KOOPERATİF LİSTESİ (KYC İÇİN) ---
+        const koopListesi = { "1010": "Özlü", "1023": "Kurbanlı", "1059": "Ulaş", "1098": "Dalakdere", "1099": "Gözne", "1108": "Yeşiltepe", "1110": "Tomuk", "1112": "Fındıkpınarı", "1113": "Aslanköy", "1155": "Bozyazı", "152": "Dikilitaş", "153": "Tekke", "1541": "Uzuncaburç", "1658": "Kamberhüyüğü", "1711": "Kelahmet", "1741": "Huzurkent", "1819": "Taşucu", "2062": "Dağpazarı", "2148": "Aydıncık", "2152": "Demirözü", "2274": "Günyurdu", "2297": "Haydar", "2298": "Zeyne", "2320": "Pirömerli", "2346": "Kadelli", "2349": "Yeşilovacık", "2397": "Gülnar", "2404": "Anamur", "2481": "Nacarlı", "2514": "Çeşmeli", "255": "Tarsus", "2670": "Sebil", "271": "Mezitli", "2817": "Sarıkavak", "674": "Arpaçsakarlar", "683": "A.Tekirçiftliği", "744": "Erdemli", "746": "Güzeloluk", "79": "Evci", "849": "Mağara", "869": "Yenice", "904": "Çiçekli", "921": "Mut", "1139": "Yumurtalık", "145": "Kürkçüler", "1470": "Durak", "1480": "Pozantı", "1947": "Hamdilli", "1949": "Tuzla", "1953": "Sarımazı", "1999": "Mustafabeyli", "2001": "Kurtkulağı", "2011": "Salbaş", "2035": "İmamoğlu", "2043": "Kozan", "2069": "Dağıstan", "2083": "Burhanlı", "2163": "Mercin", "2167": "Mercimek", "2284": "Karayusuflu", "2331": "Tepecikören", "2362": "Ceyhan", "2372": "Sağkaya", "2457": "Tufanbeyli", "2459": "Adana", "2464": "Yeniyayla", "2626": "Belören", "2646": "Kaldırım", "2668": "Doruk", "2689": "Kadıköy", "2691": "Karaisalı", "2700": "Yeşildam", "2920": "Kırıklı", "404": "Gerdan", "456": "Misis", "474": "Buruk", "77": "Küçükdikili", "928": "Kösreli", "930": "Çınarlı", "931": "Baklalı", "1328": "Samandağ", "1353": "Altınözü", "1864": "Arsuz", "2053": "Serinyol", "2403": "Antakya", "2496": "Reyhanlı", "2532": "Kırıkhan", "2740": "Hassa", "2765": "Kumlu", "2885": "Yayladağı", "551": "Erzin", "654": "Yeşilköy", "1973": "Aşağıcıyanlı", "2023": "Yukarıbozkuyu", "2024": "Yalnızdut", "2071": "Yarbaşı", "2405": "Tacirli", "2425": "Osmaniye", "2503": "Aslanpınarı", "2520": "Toprakkale", "2525": "Cevdetiye", "2554": "Kadirli", "2749": "Hardallık", "2750": "Durmuşsofular", "2794": "Hasanbeyli", "2825": "Sumbas", "891": "Düziçi" };
+        const sel = document.getElementById('kycKoop');
+        Object.entries(koopListesi).sort((a,b) => a[1].localeCompare(b[1])).forEach(([no, ad]) => { sel.innerHTML += `<option value="${no} - ${ad}">${ad} (${no})</option>`; });
+
+        // --- 2. KYC (KİMLİK DOĞRULAMA) MOTORU ---
+        setInterval(checkKycStatus, 3000); checkKycStatus(); 
+        async function checkKycStatus() {
+            let res = await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: 'kyc_check', username: myUser }) });
+            let data = await res.json();
+            if (data.status === "relogin") { localStorage.clear(); alert("Kimlik bilgileriniz onaylandı! YENİ ADINIZLA tekrar giriş yapınız."); window.location.href = 'giris.html'; return; }
+
+            const st = data.status; const overlay = document.getElementById('kycOverlay'); const formBox = document.getElementById('kycFormBox'); const waitBox = document.getElementById('kycWaitBox');
+            if (st == 0) overlay.style.display = 'none';
+            else if (st == 1) { overlay.style.display = 'flex'; formBox.style.display = 'block'; waitBox.style.display = 'none'; document.getElementById('kycMessage').innerHTML = "Lütfen gerçek <b>Ad, Soyadınızı</b> ve <b>Kooperatifinizi</b> güncelleyiniz."; } 
+            else if (st == 2) { overlay.style.display = 'flex'; formBox.style.display = 'none'; waitBox.style.display = 'block'; } 
+            else if (st == 3) { overlay.style.display = 'flex'; formBox.style.display = 'block'; waitBox.style.display = 'none'; document.getElementById('kycMessage').innerHTML = "<span style='color:#b91c1c; font-weight:bold;'>Yönetim talebinizi reddetti!</span> Geçerli isim girin."; }
+        }
+
+        async function kycGonder() {
+            const yeniAd = document.getElementById('kycAd').value.trim(); const yeniKoop = document.getElementById('kycKoop').value;
+            if(!yeniAd || !yeniKoop) return alert("Alanları doldurun!");
+            let res = await fetch('/api/auth-api.php', { method: 'POST', body: JSON.stringify({ islem: 'kyc_form_gonder', username: myUser, yeniAd: yeniAd, yeniKoop: yeniKoop }) });
+            let data = await res.json();
+            if(data.error) alert(data.error); else checkKycStatus(); 
+        }
+
+        // --- 3. MODÜLLER VE ADMİN PANELİ BUTONU ---
+        async function modulleriYukle() {
+            const grid = document.getElementById('moduleGrid');
+            try {
+                const res = await fetch('/api/modul-api.php'); const moduller = await res.json(); grid.innerHTML = ''; 
+                moduller.forEach(m => { grid.innerHTML += `<a href="${m.link}" class="card"><div class="card-icon">${m.icon}</div><div class="card-title">${m.baslik}</div><div class="card-desc">${m.aciklama}</div></a>`; });
+                // HATA BURADAYDI, ARTIK admin.html OLARAK DÜZELTİLDİ:
+                if(isAdmin) { grid.innerHTML += `<a href="admin.html" class="card"><div class="card-icon">⚙️</div><div class="card-title">Sistem Yönetimi</div><div class="card-desc">Panel ve yetkileri yönetin.</div></a>`; }
+            } catch (e) { grid.innerHTML = 'Hata oluştu.'; }
+        }
+        modulleriYukle();
+
+        // --- 4. ORTAK SOHBET MANTIĞI ---
+        if(isAdmin) { document.getElementById('adminToolbar').style.display = 'flex'; }
+        let isChatCurrentlyOpen = true;
+        mesajlariGetir(); setInterval(mesajlariGetir, 3000); 
+
+        async function mesajlariGetir() {
+            try {
+                const url = `/api/chat-api.php?user=${encodeURIComponent(myUser)}&isAdmin=${isAdmin}`;
+                const res = await fetch(url); const data = await res.json();
+                isChatCurrentlyOpen = data.chatAktif;
+                
+                if(!isAdmin) {
+                    document.getElementById('chatLockedOverlay').style.display = data.chatAktif ? 'none' : 'flex';
+                    document.getElementById('chatInput').disabled = !data.chatAktif;
+                }
+                
+                document.getElementById('chatTitle').innerText = data.chatAktif ? `🟢 Ortak Sohbet (Limit: ${data.limitSaniye}sn)` : `🔴 Ortak Sohbet`;
+                if(data.engelliMi && !isAdmin) { document.getElementById('chatInput').disabled = true; }
+
+                const body = document.getElementById('chatBody');
+                const isScrolledToBottom = body.scrollHeight - body.clientHeight <= body.scrollTop + 15;
+                const overlayHtml = document.getElementById('chatLockedOverlay').outerHTML;
+                body.innerHTML = overlayHtml; 
+
+                data.mesajlar.forEach(m => {
+                    const isMe = m.kullanici === myUser && !m.isAnonim; 
+                    const isMsgAdmin = m.isAdmin && !m.isAnonim; 
+                    let msgClass = isMe ? 'me' : (isMsgAdmin ? 'admin' : 'other');
+                    const isimGorsel = isMsgAdmin ? `<span class="admin-name">${m.gosterilecekIsim}</span>` : m.gosterilecekIsim;
+                    body.innerHTML += `<div class="chat-msg ${msgClass}" data-id="${m.id}" data-kullanici="${m.kullanici}"><span class="chat-info">${isimGorsel} - ${m.tarih}</span>${m.mesaj}</div>`;
+                });
+                if(isScrolledToBottom) body.scrollTop = body.scrollHeight;
+            } catch(e) {}
+        }
+
+        async function mesajGonder() {
+            const input = document.getElementById('chatInput'); const mesaj = input.value.trim(); const isAnonim = document.getElementById('anonimCheck').checked;
+            if(!mesaj) return; input.value = ''; 
+            await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "gonder", kullanici: myUser, mesaj: mesaj, isAdmin: isAdmin, isAnonim: isAnonim }) });
+            mesajlariGetir(); setTimeout(() => document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight, 100);
+        }
+
+        // ADMİN SOHBET KONTROLLERİ
+        const contextMenu = document.getElementById('contextMenu');
+        let seciliMesajId = null, seciliKullanici = null;
+        document.addEventListener('contextmenu', e => {
+            if(!isAdmin) return;
+            const msgDiv = e.target.closest('.chat-msg');
+            if (msgDiv) { e.preventDefault(); seciliMesajId = msgDiv.getAttribute('data-id'); seciliKullanici = msgDiv.getAttribute('data-kullanici'); contextMenu.style.top = `${e.clientY}px`; contextMenu.style.left = `${e.clientX}px`; contextMenu.style.display = 'block'; } else { contextMenu.style.display = 'none'; }
+        });
+        document.addEventListener('click', () => contextMenu.style.display = 'none');
+        document.getElementById('menuSil').onclick = async () => { await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "mesaj_sil", isAdmin: true, mesajId: seciliMesajId }) }); mesajlariGetir(); };
+        document.getElementById('menuEngelle').onclick = async () => { if(confirm(`Engelle?`)){ await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "kullanici_engelle", isAdmin: true, hedefKullanici: seciliKullanici }) }); mesajlariGetir(); }};
+        async function sohbetiTemizle() { if(confirm("Sil?")) { await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "temizle", isAdmin: true }) }); mesajlariGetir(); } }
+        async function sohbetDurumDegistir() { await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "durum_degistir", isAdmin: true, durum: !isChatCurrentlyOpen }) }); mesajlariGetir(); }
+        async function limitBelirle() { const sn = prompt("Saniye?", "3"); if(sn && !isNaN(sn)) { await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "limit_belirle", isAdmin: true, limit: sn }) }); mesajlariGetir(); } }
+        async function engelleriKaldir() { if(confirm("Tüm engeller kalksın mı?")) { await fetch('/api/chat-api.php', { method: 'POST', body: JSON.stringify({ aksiyon: "engelleri_kaldir", isAdmin: true }) }); mesajlariGetir(); } }
+
+        // --- 5. CANLI DESTEK KONTROLLERİ ---
+        if(isAdmin) { document.querySelector('.support-widget').style.display = 'none'; }
+        else { checkSupportStatus(); setInterval(checkSupportStatus, 5000); }
+
+        async function checkSupportStatus() {
+            let res = await fetch('/api/destek-api.php', { method: 'POST', body: new URLSearchParams({'islem': 'status_check'}) });
+            let data = await res.json();
+            
+            document.getElementById('suppStatusDot').style.background = data.online ? '#22c55e' : '#ef4444';
+            document.getElementById('suppStatusText').innerText = data.online ? 'Canlı Destek' : 'Destek Offline';
+            let desc = document.getElementById('suppStatusDesc');
+            if(data.online) { desc.style.background = '#dcfce7'; desc.style.color = '#15803d'; desc.innerText = 'Yönetimle iletişime geçebilirsiniz.'; } 
+            else { desc.style.background = '#fee2e2'; desc.style.color = '#b91c1c'; desc.innerText = 'Yönetim şu an çevrimdışı. Mesaj/Dosya bırakabilirsiniz.'; }
+
+            let fdMsg = new FormData(); fdMsg.append('islem', 'get_messages'); fdMsg.append('user1', myUser); fdMsg.append('user2', 'admin');
+            let resMsg = await fetch('/api/destek-api.php', { method: 'POST', body: fdMsg });
+            let msgs = await resMsg.json();
+
+            let b = document.getElementById('suppBody'); let isAtBottom = b.scrollHeight - b.clientHeight <= b.scrollTop + 15; let html = "";
+            msgs.forEach(m => {
+                let isMe = m.gonderen === myUser; let styleClass = isMe ? 'user' : 'admin'; let dosyaHtml = "";
+                if(m.dosya) dosyaHtml = `<br><a href="/${m.dosya}" target="_blank" class="s-file-link">📁 Ekli Dosya</a>`;
+                html += `<div class="s-msg ${styleClass}">${m.mesaj} ${dosyaHtml} <div style="font-size:10px; opacity:0.6; margin-top:3px; text-align:right;">${m.tarih}</div></div>`;
+            });
+            b.innerHTML = html; if(isAtBottom) b.scrollTop = b.scrollHeight;
+        }
+
+        async function sendSupportMsg() {
+            const input = document.getElementById('suppInput'); const fileInput = document.getElementById('suppFile');
+            const msg = input.value.trim(); const dosya = fileInput.files[0];
+            if(!msg && !dosya) return;
+
+            let fd = new FormData(); fd.append('islem', 'send'); fd.append('gonderen', myUser); fd.append('alici', 'admin'); fd.append('mesaj', msg);
+            if(dosya) fd.append('dosya', dosya);
+            input.value = ''; fileInput.value = '';
+            
+            await fetch('/api/destek-api.php', { method: 'POST', body: fd });
+            checkSupportStatus(); setTimeout(() => document.getElementById('suppBody').scrollTop = document.getElementById('suppBody').scrollHeight, 100);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# 1. Eğer sunucuda bakim.html dosyası VARSA şalteri indir
+RewriteCond %{DOCUMENT_ROOT}/bakim.html -f
+
+# 2. VE girmeye çalışan kişinin IP adresi SENİN BİLGİSAYARIN DEĞİLSE
+RewriteCond %{REMOTE_ADDR} !=46.197.185.37
+
+# 3. VE ziyaretçi zaten bakim.html veya stil.css dosyasında değilse
+RewriteCond %{REQUEST_URI} !/bakim.html
+RewriteCond %{REQUEST_URI} !/stil.css
+
+# 4. Onları anında bakım ekranına postala!
+RewriteRule ^(.*)$ /bakim.html [R=302,L]
+</IfModule>
